@@ -1,31 +1,10 @@
-var Atari = this.Atari || {};
-
-(function() {
-    var AM;
-    Atari.ADDRESS_MODES = {
-        A:    0,   // Accumulator
-        abs:  1,   // absolute
-        absX: 2,   // absolute, X-indexed
-        absY: 3,   // absolute, Y-indexed
-        imm:  4,   // immediate
-        impl: 5,   // implied
-        ind:  6,   // indirect
-        Xind: 7,   // X-indexed, indirect
-        indY: 8,   // indirect, Y-indexed
-        rel:  9,   // relative
-        zpg:  10,  // zeropage
-        zpgX: 11,  // zeropage, X-indexed
-        zpgY: 12,  // zeropage, Y-indexed
-        none: null // no address mode
-    };
-
-    AM = Atari.ADDRESS_MODES;
+define(['components/data/addressmodes'], function(AM) {
 
     // http://www.masswerk.at/6502/6502_instruction_set.html
     // [mnemonic, addressing, bytes, cycles, cycles-modifier]
     // cycles-modifier = 1 - add 1 to cycles if page boundery is crossed
     // cycles-modifier = 2 - add 1 to cycles if branch occurs on same page or add 2 to cycles if branch occurs to different page
-    Atari.OPCODES = [
+    var OPCODES = [
         /* 0x00 */ ['BRK', AM.impl, 1, 7, 0],
         /* 0x01 */ ['ORA', AM.Xind, 2, 6, 0],
         /* 0x02 */ ['',    AM.none, 0, 0, 0],
@@ -283,4 +262,6 @@ var Atari = this.Atari || {};
         /* 0xFE */ ['INC', AM.absX, 3, 7, 0],
         /* 0xFF */ ['',    AM.none, 0, 0, 0]
     ];
-}());
+
+    return OPCODES;
+});
