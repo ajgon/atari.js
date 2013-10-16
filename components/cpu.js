@@ -119,8 +119,16 @@ define(['components/data/addressmodes', 'components/data/opcodes'], function(ADD
             
             // Parse mnemonic
             switch (opcode[0]) {
+                case 'LDA':
+                    this.reg.A = arg;
+                    this.setNZ(arg);
+                    break;
                 case 'LDX':
                     this.reg.X = arg;
+                    this.setNZ(arg);
+                    break;
+                case 'LDY':
+                    this.reg.Y = arg;
                     this.setNZ(arg);
                     break;
                 case 'SEC':
