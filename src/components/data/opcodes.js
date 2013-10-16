@@ -1,4 +1,4 @@
-define(['components/data/addressmodes'], function(AM) {
+define(['src/components/data/addressmodes'], function(AM) {
 
     // http://www.masswerk.at/6502/6502_instruction_set.html
     // [mnemonic, addressing, bytes, cycles, cycles-modifier]

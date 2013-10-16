@@ -1,4 +1,4 @@
-require(['components/cpu', 'components/memory'], function(CPU, Memory) {
+define(['src/components/cpu', 'src/components/memory'], function(CPU, Memory) {
     var Atari;
 
     Atari = {
@@ -30,8 +30,6 @@ require(['components/cpu', 'components/memory'], function(CPU, Memory) {
         0xA1, 0x09,       // LDA ($09,X)
         0xB1, 0x0A        // LDA ($0A),Y
     ];
-
-    window.Atari = Atari;
 
     return Atari;
 });

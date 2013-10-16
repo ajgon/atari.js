@@ -1,7 +1,12 @@
 <html>
 <head>
     <title>Atari Demo</title>
-    <script type="text/javascript" src="lib/require.js" data-main="atari"></script>
+    <script type="text/javascript" src="src/lib/require.js"></script>
+    <script type="text/javascript">
+        require(['src/atari'], function(Atari) {
+            window.Atari = Atari;
+        });
+    </script>
 </head>
 <body>
 </body>

@@ -1,4 +1,4 @@
-define(['components/data/addressmodes', 'components/data/opcodes'], function(ADDRESS_MODES, OPCODES) {
+define(['src/components/data/addressmodes', 'src/components/data/opcodes'], function(ADDRESS_MODES, OPCODES) {
     var CPU = {
         // instructions table
         OPCODES: OPCODES,
@@ -25,7 +25,7 @@ define(['components/data/addressmodes', 'components/data/opcodes'], function(ADD
             // See: http://www.atarimagazines.com/compute/issue53/047_1_All_About_The_Status_Register.php
             P: 0x20 // 00100000
         },
-        memory: [],
+        memory: null,
         cycles: 0,
 
         // Increase Program Counter
