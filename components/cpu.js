@@ -40,6 +40,14 @@ define(['components/data/addressmodes', 'components/data/opcodes'], function(ADD
             this.reg.P |= (arg === 0 ? 0x02 : 0x00);
         },
 
+        // Sum two arguments, adjust cycles if pageBoundary is set
+        sumWithPageBoundary: function sumWithPageBoundary(address, offset, modifier) {
+            if (modifier === 1 && ((address & 0xff) + offset > 0xff)) {
+                this.cycles += 1;
+            }
+            return address + offset;
+        },
+
         // Process one instruction
         step: function step() {
             var b, opcode, address, arg; //mnemonic, addresing, bytes, cycles, cycles_modifier;
@@ -61,7 +69,7 @@ define(['components/data/addressmodes', 'components/data/opcodes'], function(ADD
                     this.incPC();
                     break;
                 case 3:
-                    address = this.memory.readByte(this.reg.PC) | (this.memory.readByte(this.reg.PC + 1) << 8);
+                    address = this.memory.readWord(this.reg.PC);
                     this.incPC(2);
                     break;
             }
@@ -71,29 +79,41 @@ define(['components/data/addressmodes', 'components/data/opcodes'], function(ADD
                     arg = this.reg.A;
                     break;
                 case this.AM.abs:
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.absX:
+                    arg = this.memory.readByte(this.sumWithPageBoundary(address, this.reg.X, opcode[4]));
                     break;
                 case this.AM.absY:
+                    arg = this.memory.readByte(this.sumWithPageBoundary(address, this.reg.Y, opcode[4]));
                     break;
                 case this.AM.imm:
                     arg = address;
                     break;
                 case this.AM.impl:
+                    arg = null;
                     break;
                 case this.AM.ind:
+                    arg = this.memory.readByte(this.memory.readWord(address));
                     break;
                 case this.AM.Xind:
+                    arg = this.memory.readByte(this.memory.readWord(address + this.reg.X));
                     break;
                 case this.AM.indY:
+                    arg = this.memory.readByte(this.sumWithPageBoundary(this.memory.readByte(address), this.reg.Y, opcode[4]));
                     break;
                 case this.AM.rel:
+                    arg = this.reg.PC + (address > 127 ? -((~address) & 0xff) : address);
+                    arg = this.memory.readByte(arg < 0 ? arg + 0x10000 : arg & 0xffff);
                     break;
                 case this.AM.zpg:
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.zpgX:
+                    arg = this.memory.readByte(address + this.reg.X);
                     break;
                 case this.AM.zpgY:
+                    arg = this.memory.readByte(address + this.reg.Y);
                     break;
             }
             
