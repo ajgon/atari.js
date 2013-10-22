@@ -7,7 +7,7 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
         reg: {
             // REGISTERS
             // See: http://www.obelisk.demon.co.uk/6502/registers.html
-            // 
+            //
             // Program Counter
             PC: 0x0000,
             // Stack Pointer
@@ -35,11 +35,20 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
 
         // Set N,Z status bits based on argument
         setNZ: function setNZ(arg) {
-            this.reg.P = (this.reg.P & 0x7d); // clean NZ
+            this.reg.P &= 0x7d; // clean NZ
             this.reg.P |= (arg & 0x80); // set N
             this.reg.P |= (arg === 0 ? 0x02 : 0x00);
         },
-
+        setC: function setC(arg) {
+            this.reg.P &= 0xfe; // clean C
+            if (arg > 0xff) {
+                this.reg.P |= 0x01;
+            }
+        },
+        setV: function setV(M, N, result) {
+            this.reg.P &= 0xBF; // clean V
+            this.reg.P |= ((M^result)&(N^result)&0x80) >> 1;
+        },
         // Sum two arguments, adjust cycles if pageBoundary is set
         sumWithPageBoundary: function sumWithPageBoundary(address, offset, modifier) {
             if (modifier === 1 && ((address & 0xff) + offset > 0xff)) {
@@ -50,7 +59,7 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
 
         // Process one instruction
         step: function step() {
-            var b, opcode, address, arg; //mnemonic, addresing, bytes, cycles, cycles_modifier;
+            var b, opcode, address, arg, result; //mnemonic, addresing, bytes, cycles, cycles_modifier;
 
             // Read byte from memory
             byte = this.memory.readByte(this.reg.PC);
@@ -97,7 +106,7 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
                     arg = this.memory.readByte(this.memory.readWord(address));
                     break;
                 case this.AM.Xind:
-                    arg = this.memory.readByte(this.memory.readWord(address + this.reg.X));
+                    arg = this.memory.readByte(this.memory.readByte(address + this.reg.X));
                     break;
                 case this.AM.indY:
                     arg = this.memory.readByte(this.sumWithPageBoundary(this.memory.readByte(address), this.reg.Y, opcode[4]));
@@ -116,9 +125,16 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
                     arg = this.memory.readByte(address + this.reg.Y);
                     break;
             }
-            
+
             // Parse mnemonic
             switch (opcode[0]) {
+                case 'ADC':
+                    result = this.reg.A + arg + (this.reg.P & 0x01);
+                    this.setC(result);
+                    this.setV(this.reg.A, arg, result);
+                    this.reg.A = result & 0xff;
+                    this.setNZ(this.reg.A);
+                    break;
                 case 'LDA':
                     this.reg.A = arg;
                     this.setNZ(arg);
