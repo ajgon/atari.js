@@ -56,6 +56,9 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
             }
             return address + offset;
         },
+        adjustCyclesForPages: function adjustCyclesForPages(src, dst) {
+            this.cycles += 1 + (((src & 0xff00) === (dst & 0xff00)) ? 0 : 1);
+        },
 
         // Process one instruction
         step: function step() {
@@ -91,10 +94,12 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
                     arg = this.memory.readByte(address);
                     break;
                 case this.AM.absX:
-                    arg = this.memory.readByte(this.sumWithPageBoundary(address, this.reg.X, opcode[4]));
+                    address = this.sumWithPageBoundary(address, this.reg.X, opcode[4]);
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.absY:
-                    arg = this.memory.readByte(this.sumWithPageBoundary(address, this.reg.Y, opcode[4]));
+                    address = this.sumWithPageBoundary(address, this.reg.Y, opcode[4]);
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.imm:
                     arg = address;
@@ -103,26 +108,32 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
                     arg = null;
                     break;
                 case this.AM.ind:
-                    arg = this.memory.readByte(this.memory.readWord(address));
+                    address = this.memory.readWord(address);
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.Xind:
-                    arg = this.memory.readByte(this.memory.readByte(address + this.reg.X));
+                    address = this.memory.readByte(address + this.reg.X);
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.indY:
-                    arg = this.memory.readByte(this.sumWithPageBoundary(this.memory.readByte(address), this.reg.Y, opcode[4]));
+                    address = this.sumWithPageBoundary(this.memory.readByte(address), this.reg.Y, opcode[4]);
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.rel:
-                    arg = this.reg.PC + (address > 127 ? -((~address) & 0xff) : address);
-                    arg = this.memory.readByte(arg < 0 ? arg + 0x10000 : arg & 0xffff);
+                    address = this.reg.PC + (address > 127 ? -((~(address - 1)) & 0xff) : address);
+                    address = address < 0 ? address + 0x10000 : address & 0xffff;
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.zpg:
                     arg = this.memory.readByte(address);
                     break;
                 case this.AM.zpgX:
-                    arg = this.memory.readByte(address + this.reg.X);
+                    address = address + this.reg.X;
+                    arg = this.memory.readByte(address);
                     break;
                 case this.AM.zpgY:
-                    arg = this.memory.readByte(address + this.reg.Y);
+                    address = address + this.reg.Y;
+                    arg = this.memory.readByte(address);
                     break;
             }
 
@@ -134,6 +145,42 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
                     this.setV(this.reg.A, arg, result);
                     this.reg.A = result & 0xff;
                     this.setNZ(this.reg.A);
+                    break;
+                case 'AND':
+                    this.reg.A &= arg;
+                    this.setNZ(this.reg.A);
+                    break;
+                case 'ASL':
+                    result = arg << 1;
+                    this.setC(result);
+                    result &= 0xff;
+                    switch(opcode[1]) {
+                        case this.AM.A:
+                            this.reg.A = result;
+                        break;
+                        default:
+                            this.memory.setByte(address, result);
+                        break;
+                    }
+                    this.setNZ(result);
+                    break;
+                case 'BCC':
+                    if((this.reg.P & 0x01) == 0x00) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
+                    break;
+                case 'BCS':
+                    if((this.reg.P & 0x01) == 0x01) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
+                    break;
+                case 'BEQ':
+                    if((this.reg.P & 0x02) == 0x02) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
                     break;
                 case 'LDA':
                     this.reg.A = arg;

@@ -99,7 +99,7 @@ define(['src/atari'], function(Atari) {
                 CPU.memory.data = [0xA9, 0x15, 0x65, 0x01];
                 CPU.step();
                 CPU.step();
-                expect(CPU.cycles).toEqual(4);
+                expect(CPU.cycles).toEqual(5);
                 expect(CPU.reg.A).toEqual(0x2A);
                 testNZ(0, 0);
                 testC(0);
@@ -180,6 +180,304 @@ define(['src/atari'], function(Atari) {
                 testNZ(1, 0);
                 testC(0);
                 testV(1);
+            });
+
+        });
+
+        describe('AND', function() {
+            it('LDA #$2F; AND #$3A', function() {
+                CPU.memory.data = [0xA9, 0x2F, 0x29, 0x3A];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+            it('LDA #$AA; AND $#D5', function() {
+                CPU.memory.data = [0xA9, 0xAA, 0x29, 0xD5];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.A).toEqual(0x80);
+                testNZ(1, 0);
+            });
+
+            it('LDA #$AA; AND $#55', function() {
+                CPU.memory.data = [0xA9, 0xAA, 0x29, 0x55];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.A).toEqual(0);
+                testNZ(0, 1);
+            });
+
+            it('LDA #$2F; AND $04', function() {
+                CPU.memory.data = [0xA9, 0x2F, 0x25, 0x04, 0x3A];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(5);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+            it('LDX #$01; LDA#$2F; AND $05,X', function() {
+                CPU.memory.data = [0xA2, 0x01, 0xA9, 0x2F, 0x35, 0x05, 0x3A];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+            it('LDA #$2F; AND $0347', function() {
+                CPU.memory.data = [0xA9, 0x2F, 0x2D, 0x47, 0x03];
+                CPU.memory.data[0x0347] = 0x3A;
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+            it('LDX #$03; LDA #$2F; AND $0347,X', function() {
+                CPU.memory.data = [0xA2, 0x03, 0xA9, 0x2F, 0x3D, 0x47, 0x03];
+                CPU.memory.data[0x0347] = 0x1F;
+                CPU.memory.data[0x034A] = 0x3A;
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+            it('LDY #$03; LDA #$2F; AND $0347,Y', function() {
+                CPU.memory.data = [0xA0, 0x03, 0xA9, 0x2F, 0x39, 0x47, 0x03];
+                CPU.memory.data[0x0347] = 0x1F;
+                CPU.memory.data[0x034A] = 0x3A;
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+            it('LDX #$02; LDA #$2F; AND ($04,X)', function() {
+                CPU.memory.data = [0xA2, 0x02, 0xA9, 0x2F, 0x21, 0x04, 0x07, 0x3A];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(10);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+            it('LDY #$02; LDA #$2F; AND ($06),Y', function() {
+                CPU.memory.data = [0xA0, 0x02, 0xA9, 0x2F, 0x31, 0x06, 0x05, 0x3A];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(9);
+                expect(CPU.reg.A).toEqual(0x2A);
+                testNZ(0, 0);
+            });
+
+        });
+
+        describe('ASL', function() {
+            it('LDA #$0A; ASL A', function() {
+                CPU.memory.data = [0xA9, 0x0A, 0x0A];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.A).toEqual(0x14);
+                testNZ(0, 0);
+                testC(0);
+            });
+
+            it('LDA #$7F; ASL A', function() {
+                CPU.memory.data = [0xA9, 0x7F, 0x0A];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.A).toEqual(0xFE);
+                testNZ(1, 0);
+                testC(0);
+            });
+
+            it('LDA #$00; ASL A', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x0A];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.A).toEqual(0x00);
+                testNZ(0, 1);
+                testC(0);
+            });
+
+            it('LDA #$80; ASL A', function() {
+                CPU.memory.data = [0xA9, 0x80, 0x0A];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.A).toEqual(0x00);
+                testNZ(0, 1);
+                testC(1);
+            });
+
+            it('SEC; LDA #$04; ASL A', function() {
+                CPU.memory.data = [0x38, 0xA9, 0x04, 0x0A];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                expect(CPU.reg.A).toEqual(0x08);
+                testNZ(0, 0);
+                testC(0);
+            });
+
+            it('ASL $02', function() {
+                CPU.memory.data = [0x06, 0x02, 0x04];
+                CPU.step();
+                expect(CPU.cycles).toEqual(5);
+                expect(CPU.memory.data[0x02]).toEqual(0x08);
+            });
+
+            it('LDX #$01; ASL $03,X', function() {
+                CPU.memory.data = [0xA2, 0x01, 0x16, 0x03, 0x08];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+                expect(CPU.memory.data[0x04]).toEqual(0x10);
+            });
+
+            it('ASL $1234', function() {
+                CPU.memory.data = [0x0E, 0x34, 0x12];
+                CPU.memory.data[0x1234] = 0x02;
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                expect(CPU.memory.data[0x1234]).toEqual(0x04);
+            });
+
+            it('LDX #$06; ASL $1234,X', function() {
+                CPU.memory.data = [0xA2, 0x06, 0x1E, 0x34, 0x12];
+                CPU.memory.data[0x1234] = 0x2F;
+                CPU.memory.data[0x123A] = 0x10;
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(9);
+                expect(CPU.memory.data[0x123A]).toEqual(0x20);
+            });
+        });
+
+        describe('BCC', function() {
+            it('BCC $01; SED; SEI', function() {
+                CPU.memory.data = [0x90, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(5);
+                expect(CPU.reg.P & 0x01).toEqual(0x00); // C = 0
+                expect(CPU.reg.P & 0x04).toEqual(0x04); // I = 1
+                expect(CPU.reg.P & 0x08).toEqual(0x00); // D = 0
+            });
+
+            it('SEC; BCC $01; SED; SEI', function() {
+                CPU.memory.data = [0x38, 0x90, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                expect(CPU.reg.P & 0x01).toEqual(0x01); // C = 1
+                expect(CPU.reg.P & 0x04).toEqual(0x00); // I = 0
+                expect(CPU.reg.P & 0x08).toEqual(0x08); // D = 1
+            });
+
+            it('BCC $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0x90, 0xF0];
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+            });
+
+            it('SEC; BCC $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0x38, 0x90, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+            });
+        });
+
+        describe('BCS', function() {
+            it('BCS $01; SED; SEI', function() {
+                CPU.memory.data = [0xB0, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.P & 0x01).toEqual(0x00); // C = 0
+                expect(CPU.reg.P & 0x04).toEqual(0x00); // I = 0
+                expect(CPU.reg.P & 0x08).toEqual(0x08); // D = 1
+            });
+
+            it('SEC; BCS $01; SED; SEI', function() {
+                CPU.memory.data = [0x38, 0xB0, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(7);
+                expect(CPU.reg.P & 0x01).toEqual(0x01); // C = 1
+                expect(CPU.reg.P & 0x04).toEqual(0x04); // I = 1
+                expect(CPU.reg.P & 0x08).toEqual(0x00); // D = 0
+            });
+
+            it('SEC; BCS $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0x38, 0xB0, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+            });
+
+            it('BCS $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0xB0, 0xF0];
+                CPU.step();
+                expect(CPU.cycles).toEqual(2);
+            });
+        });
+
+        describe('BEQ', function() {
+            it('BEQ $01; SED; SEI', function() {
+                CPU.memory.data = [0xF0, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+                expect(CPU.reg.P & 0x02).toEqual(0x00); // Z = 0
+                expect(CPU.reg.P & 0x04).toEqual(0x00); // I = 0
+                expect(CPU.reg.P & 0x08).toEqual(0x08); // D = 1
+            });
+
+            it('LDA $#00; BEQ $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x00, 0xF0, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(7);
+                expect(CPU.reg.P & 0x02).toEqual(0x02); // Z = 1
+                expect(CPU.reg.P & 0x04).toEqual(0x04); // I = 1
+                expect(CPU.reg.P & 0x08).toEqual(0x00); // D = 0
+            });
+
+            it('LDA #$00; BEQ $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0xA9, 0x00, 0xF0, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+            });
+
+            it('BEQ $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0xF0, 0xF0];
+                CPU.step();
+                expect(CPU.cycles).toEqual(2);
             });
         });
         describe('LDA', function() {
