@@ -2,21 +2,35 @@ define(['src/atari'], function(Atari) {
 
     describe('Atari CPU', function() {
         var CPU = Atari.CPU,
-            testNZ = function testNZ(N, Z) {
+            testN = function testN(N) {
                 expect(CPU.reg.P & 0x80).toEqual(N ? 0x80 : 0x00);
-                expect(CPU.reg.P & 0x02).toEqual(Z ? 0x02 : 0x00);
-            };
-            testC = function testC(C) {
-                expect(CPU.reg.P & 0x01).toEqual(C ? 0x01 : 0x00);
-            };
+            }
             testV = function testV(V) {
                 expect(CPU.reg.P & 0x40).toEqual(V ? 0x40 : 0x00);
-            };
+            }
+            testB = function testB(B) {
+                expect(CPU.reg.P & 0x10).toEqual(B ? 0x10 : 0x00);
+            }
+            testD = function testD(D) {
+                expect(CPU.reg.P & 0x08).toEqual(D ? 0x08 : 0x00);
+            }
+            testI = function testI(I) {
+                expect(CPU.reg.P & 0x04).toEqual(I ? 0x04 : 0x00);
+            }
+            testZ = function testZ(Z) {
+                expect(CPU.reg.P & 0x02).toEqual(Z ? 0x02 : 0x00);
+            }
+            testC = function testC(C) {
+                expect(CPU.reg.P & 0x01).toEqual(C ? 0x01 : 0x00);
+            }
+            testStack = function testStack(sp, value) {
+                expect(CPU.memory.data[0x100 + sp]).toEqual(value);
+            }
 
         beforeEach(function() {
             CPU.reg = {
                 PC: 0x0000,
-                SP: 0xFF,
+                S:  0xFF,
                 A:  0x00,
                 X:  0x00,
                 Y:  0x00,
@@ -33,7 +47,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x7F);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(0);
                 testV(0);
             });
@@ -44,7 +59,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x00);
-                testNZ(0, 1);
+                testN(0);
+                testZ(1);
                 testC(1);
                 testV(0);
             });
@@ -55,7 +71,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x80);
-                testNZ(1, 0);
+                testN(1);
+                testZ(0);
                 testC(0);
                 testV(1);
             });
@@ -66,7 +83,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x60);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(1);
                 testV(1);
             });
@@ -78,7 +96,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(6);
                 expect(CPU.reg.A).toEqual(0x80);
-                testNZ(1, 0);
+                testN(1);
+                testZ(0);
                 testC(0);
                 testV(1);
             });
@@ -90,7 +109,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(6);
                 expect(CPU.reg.A).toEqual(0x00);
-                testNZ(0, 1);
+                testN(0);
+                testZ(1);
                 testC(1);
                 testV(0);
             });
@@ -101,7 +121,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(5);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(0);
                 testV(0);
             });
@@ -113,7 +134,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(8);
                 expect(CPU.reg.A).toEqual(0x9A);
-                testNZ(1, 0);
+                testN(1);
+                testZ(0);
                 testC(0);
                 testV(1);
             });
@@ -125,7 +147,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(6);
                 expect(CPU.reg.A).toEqual(0x1F);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(1);
                 testV(0);
             });
@@ -139,7 +162,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(8);
                 expect(CPU.reg.A).toEqual(0x67);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(0);
                 testV(0);
             });
@@ -153,7 +177,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(8);
                 expect(CPU.reg.A).toEqual(0x67);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(0);
                 testV(0);
             });
@@ -165,7 +190,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(10);
                 expect(CPU.reg.A).toEqual(0xA4);
-                testNZ(1, 0);
+                testN(1);
+                testZ(0);
                 testC(0);
                 testV(1);
             });
@@ -177,7 +203,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(9);
                 expect(CPU.reg.A).toEqual(0xA4);
-                testNZ(1, 0);
+                testN(1);
+                testZ(0);
                 testC(0);
                 testV(1);
             });
@@ -191,25 +218,28 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
-            it('LDA #$AA; AND $#D5', function() {
+            it('LDA #$AA; AND #$D5', function() {
                 CPU.memory.data = [0xA9, 0xAA, 0x29, 0xD5];
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x80);
-                testNZ(1, 0);
+                testN(1);
+                testZ(0);
             });
 
-            it('LDA #$AA; AND $#55', function() {
+            it('LDA #$AA; AND #$55', function() {
                 CPU.memory.data = [0xA9, 0xAA, 0x29, 0x55];
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0);
-                testNZ(0, 1);
+                testN(0);
+                testZ(1);
             });
 
             it('LDA #$2F; AND $04', function() {
@@ -218,7 +248,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(5);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
             it('LDX #$01; LDA#$2F; AND $05,X', function() {
@@ -228,7 +259,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(8);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
             it('LDA #$2F; AND $0347', function() {
@@ -238,7 +270,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(6);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
             it('LDX #$03; LDA #$2F; AND $0347,X', function() {
@@ -250,7 +283,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(8);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
             it('LDY #$03; LDA #$2F; AND $0347,Y', function() {
@@ -262,7 +296,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(8);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
             it('LDX #$02; LDA #$2F; AND ($04,X)', function() {
@@ -272,7 +307,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(10);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
             it('LDY #$02; LDA #$2F; AND ($06),Y', function() {
@@ -282,7 +318,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(9);
                 expect(CPU.reg.A).toEqual(0x2A);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
             });
 
         });
@@ -294,7 +331,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x14);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(0);
             });
 
@@ -304,7 +342,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0xFE);
-                testNZ(1, 0);
+                testN(1);
+                testZ(0);
                 testC(0);
             });
 
@@ -314,7 +353,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x00);
-                testNZ(0, 1);
+                testN(0);
+                testZ(1);
                 testC(0);
             });
 
@@ -324,7 +364,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
                 expect(CPU.reg.A).toEqual(0x00);
-                testNZ(0, 1);
+                testN(0);
+                testZ(1);
                 testC(1);
             });
 
@@ -335,7 +376,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 expect(CPU.cycles).toEqual(6);
                 expect(CPU.reg.A).toEqual(0x08);
-                testNZ(0, 0);
+                testN(0);
+                testZ(0);
                 testC(0);
             });
 
@@ -379,9 +421,9 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(5);
-                expect(CPU.reg.P & 0x01).toEqual(0x00); // C = 0
-                expect(CPU.reg.P & 0x04).toEqual(0x04); // I = 1
-                expect(CPU.reg.P & 0x08).toEqual(0x00); // D = 0
+                testC(0);
+                testI(1);
+                testD(0);
             });
 
             it('SEC; BCC $01; SED; SEI', function() {
@@ -390,9 +432,9 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(6);
-                expect(CPU.reg.P & 0x01).toEqual(0x01); // C = 1
-                expect(CPU.reg.P & 0x04).toEqual(0x00); // I = 0
-                expect(CPU.reg.P & 0x08).toEqual(0x08); // D = 1
+                testC(1);
+                testI(0);
+                testD(1);
             });
 
             it('BCC $F0 (different pages, jump)', function() {
@@ -415,9 +457,9 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
-                expect(CPU.reg.P & 0x01).toEqual(0x00); // C = 0
-                expect(CPU.reg.P & 0x04).toEqual(0x00); // I = 0
-                expect(CPU.reg.P & 0x08).toEqual(0x08); // D = 1
+                testC(0);
+                testI(0);
+                testD(1);
             });
 
             it('SEC; BCS $01; SED; SEI', function() {
@@ -426,9 +468,9 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(7);
-                expect(CPU.reg.P & 0x01).toEqual(0x01); // C = 1
-                expect(CPU.reg.P & 0x04).toEqual(0x04); // I = 1
-                expect(CPU.reg.P & 0x08).toEqual(0x00); // D = 0
+                testC(1);
+                testI(1);
+                testD(0);
             });
 
             it('SEC; BCS $F0 (different pages, jump)', function() {
@@ -451,20 +493,20 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(4);
-                expect(CPU.reg.P & 0x02).toEqual(0x00); // Z = 0
-                expect(CPU.reg.P & 0x04).toEqual(0x00); // I = 0
-                expect(CPU.reg.P & 0x08).toEqual(0x08); // D = 1
+                testZ(0);
+                testI(0);
+                testD(1);
             });
 
-            it('LDA $#00; BEQ $01; SED; SEI', function() {
+            it('LDA #$00; BEQ $01; SED; SEI', function() {
                 CPU.memory.data = [0xA9, 0x00, 0xF0, 0x01, 0xF8, 0x78];
                 CPU.step();
                 CPU.step();
                 CPU.step();
                 expect(CPU.cycles).toEqual(7);
-                expect(CPU.reg.P & 0x02).toEqual(0x02); // Z = 1
-                expect(CPU.reg.P & 0x04).toEqual(0x04); // I = 1
-                expect(CPU.reg.P & 0x08).toEqual(0x00); // D = 0
+                testZ(1);
+                testI(1);
+                testD(0);
             });
 
             it('LDA #$00; BEQ $F0 (different pages, jump)', function() {
@@ -480,6 +522,279 @@ define(['src/atari'], function(Atari) {
                 expect(CPU.cycles).toEqual(2);
             });
         });
+
+        describe('BIT', function() {
+            it('LDA #$00; BIT $04', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x24, 0x04, 0xC0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(5);
+                expect(CPU.reg.A).toEqual(0);
+                testN(1);
+                testV(1);
+                testZ(1);
+            });
+
+            it('LDA #$FF; BIT $04', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0x24, 0x04, 0x03];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(5);
+                expect(CPU.reg.A).toEqual(0xFF);
+                testN(0);
+                testV(0);
+                testZ(0);
+            });
+
+            it('LDA #$FF; BIT $04', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0x24, 0x04, 0x80];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(5);
+                expect(CPU.reg.A).toEqual(0xFF);
+                testN(1);
+                testV(0);
+                testZ(0);
+            });
+
+            it('LDA #$00; BIT $04', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x24, 0x04, 0x40];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(5);
+                expect(CPU.reg.A).toEqual(0x00);
+                testN(0);
+                testV(1);
+                testZ(1);
+            });
+
+            it('LDA #$00; BIT $1410', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x2C, 0x10, 0x14];
+                CPU.memory.data[0x1410] = 0xC0;
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                expect(CPU.reg.A).toEqual(0);
+                testN(1);
+                testV(1);
+                testZ(1);
+            });
+        });
+
+        describe('BMI', function() {
+            it('LDA #$00; BMI $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x30, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                testN(0);
+                testI(0);
+                testD(1);
+            });
+
+            it('LDA #$FF; BMI $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0x30, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(7);
+                testN(1);
+                testI(1);
+                testD(0);
+            });
+
+            it('LDA #$FF; BMI $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0x30, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+            });
+
+            it('LDA #$00; BMI $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x30, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+            });
+        });
+
+        describe('BNE', function() {
+            it('LDA #$00; BNE $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x00, 0xD0, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                testZ(1);
+                testI(0);
+                testD(1);
+            });
+
+            it('LDA #$FF; BNE $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0xD0, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(7);
+                testZ(0);
+                testI(1);
+                testD(0);
+            });
+
+            it('LDA #$FF; BNE $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0xD0, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+            });
+
+            it('LDA #$00; BNE $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0xA9, 0x00, 0xD0, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+            });
+        });
+
+        describe('BPL', function() {
+            it('LDA #$FF; BPL $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0x10, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+                testN(1);
+                testI(0);
+                testD(1);
+            });
+
+            it('LDA #$00; BPL $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x10, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(7);
+                testN(0);
+                testI(1);
+                testD(0);
+            });
+
+            it('LDA #$00; BPL $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0xA9, 0x00, 0x10, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+            });
+
+            it('LDA #$FF; BPL $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0xA9, 0xFF, 0x10, 0xF0];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(4);
+            });
+        });
+
+        describe('BRK', function() {
+            // TODO: test interrupts
+            it('LDA #$CC; BRK', function() {
+                CPU.memory.data = [0xA9, 0xCC, 0x00];
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(9);
+                testI(1);
+                testB(1);
+                testStack(0xFF, 0x00);
+                testStack(0xFE, 0x03);
+                testStack(0xFD, 0xB0);
+                expect(CPU.reg.S).toEqual(0xFC);
+            });
+        });
+
+        describe('BVC', function() {
+            it('LDA #$64; ADC #$1C; BVC $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x64, 0x69, 0x1C, 0x50, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+                testV(1);
+                testI(0);
+                testD(1);
+            });
+
+            it('LDA #$10; ADC #$05; BVC $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x10, 0x69, 0x05, 0x50, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(9);
+                testV(0);
+                testI(1);
+                testD(0);
+            });
+
+            it('LDA #$10; ADC #$05; BVC $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0xA9, 0x10, 0x69, 0x05, 0x50, 0xF0];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+            });
+
+            it('LDA #$64; ADC #$1C; BVC $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0xA9, 0x64, 0x69, 0x1C, 0x50, 0xF0];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+            });
+        });
+
+        describe('BVS', function() {
+            it('LDA #$10; ADC #$05; BVS $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x10, 0x69, 0x05, 0x70, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+                testV(0);
+                testI(0);
+                testD(1);
+            });
+
+            it('LDA #$64; ADC #$1C; BVS $01; SED; SEI', function() {
+                CPU.memory.data = [0xA9, 0x64, 0x69, 0x1C, 0x70, 0x01, 0xF8, 0x78];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(9);
+                testV(1);
+                testI(1);
+                testD(0);
+            });
+
+            it('LDA #$64; ADC #$1C; BVS $F0 (different pages, jump)', function() {
+                CPU.memory.data = [0xA9, 0x64, 0x69, 0x1C, 0x70, 0xF0];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(8);
+            });
+
+            it('LDA #$10; ADC #$05; BVS $F0 (different pages, no jump)', function() {
+                CPU.memory.data = [0xA9, 0x10, 0x69, 0x05, 0x70, 0xF0];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+                expect(CPU.cycles).toEqual(6);
+            });
+        });
+
         describe('LDA', function() {
             it('LDA #$42', function() {
                 CPU.memory.data = [0xA9, 0x42];
@@ -494,7 +809,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(0, 1); // N = 0, Z = 1
+                testN(0);
+                testZ(1);
                 expect(CPU.reg.A).toEqual(0x00);
             });
 
@@ -503,7 +819,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(1, 0); // N = 1, Z = 0
+                testN(1);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0xF5);
             });
 
@@ -512,7 +829,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(3);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -522,7 +840,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(6);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -532,7 +851,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(4);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -544,7 +864,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(6);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -556,7 +877,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(7);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -568,7 +890,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(6);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -580,7 +903,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(7);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -591,7 +915,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(8);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -601,7 +926,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(7);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
 
@@ -613,7 +939,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(8);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.A).toEqual(0x42);
             });
         });
@@ -624,7 +951,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.X).toEqual(0x42);
             });
 
@@ -633,7 +961,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(0, 1); // N = 0, Z = 1
+                testN(0);
+                testZ(1);
                 expect(CPU.reg.X).toEqual(0x00);
             });
 
@@ -642,7 +971,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(1, 0); // N = 1, Z = 0
+                testN(1);
+                testZ(0);
                 expect(CPU.reg.X).toEqual(0xF5);
             });
 
@@ -651,7 +981,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(3);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.X).toEqual(0x42);
             });
 
@@ -661,7 +992,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(6);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.X).toEqual(0x42);
             });
 
@@ -671,7 +1003,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(4);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.X).toEqual(0x42);
             });
 
@@ -683,7 +1016,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(6);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.X).toEqual(0x42);
             });
 
@@ -695,7 +1029,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(7);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.X).toEqual(0x42);
             });
 
@@ -707,7 +1042,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.Y).toEqual(0x42);
             });
 
@@ -716,7 +1052,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(0, 1); // N = 0, Z = 1
+                testN(0);
+                testZ(1);
                 expect(CPU.reg.Y).toEqual(0x00);
             });
 
@@ -725,7 +1062,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                testNZ(1, 0); // N = 1, Z = 0
+                testN(1);
+                testZ(0);
                 expect(CPU.reg.Y).toEqual(0xF5);
             });
 
@@ -734,7 +1072,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(3);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.Y).toEqual(0x42);
             });
 
@@ -744,7 +1083,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(6);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.Y).toEqual(0x42);
             });
 
@@ -754,7 +1094,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(4);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.Y).toEqual(0x42);
             });
 
@@ -766,7 +1107,8 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(6);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.Y).toEqual(0x42);
             });
 
@@ -778,18 +1120,65 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(7);
-                testNZ(0, 0); // N = 0, Z = 0
+                testN(0);
+                testZ(0);
                 expect(CPU.reg.Y).toEqual(0x42);
             });
 
         });
+
+        describe('CLC', function() {
+            it('SEC; CLC', function() {
+                CPU.memory.data = [0x38, 0x18];
+                CPU.step();
+                CPU.step();
+
+                expect(CPU.cycles).toEqual(4);
+                testC(0);
+            });
+        });
+
+        describe('CLD', function() {
+            it('SED; CLD', function() {
+                CPU.memory.data = [0xF8, 0xD8];
+                CPU.step();
+                CPU.step();
+
+                expect(CPU.cycles).toEqual(4);
+                testD(0);
+            });
+        });
+
+        describe('CLI', function() {
+            it('SEI; CLI', function() {
+                CPU.memory.data = [0x78, 0x58];
+                CPU.step();
+                CPU.step();
+
+                expect(CPU.cycles).toEqual(4);
+                testI(0);
+            });
+        });
+
+        describe('CLV', function() {
+            it('LDA #$64; ADC #$1C; CLV', function() {
+                CPU.memory.data = [0xA9, 0x64, 0x69, 0x1C, 0xB8];
+                CPU.step();
+                CPU.step();
+                CPU.step();
+
+                expect(CPU.cycles).toEqual(6);
+                testV(0);
+            });
+        });
+
         describe('SEC', function() {
             it('SEC', function() {
                 CPU.memory.data = [0x38];
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                expect(CPU.reg.P & 0x01).toEqual(0x01); // C = 1
+                testC(1);
             });
         });
 
@@ -799,10 +1188,9 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                expect(CPU.reg.P & 0x08).toEqual(0x08); // D = 1
+                testD(1);
             });
         });
-
 
         describe('SEI', function() {
             it('SEI', function() {
@@ -810,7 +1198,7 @@ define(['src/atari'], function(Atari) {
                 CPU.step();
 
                 expect(CPU.cycles).toEqual(2);
-                expect(CPU.reg.P & 0x04).toEqual(0x04); // I = 1
+                testI(1);
             });
         });
     });

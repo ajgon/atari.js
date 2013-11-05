@@ -11,7 +11,7 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
             // Program Counter
             PC: 0x0000,
             // Stack Pointer
-            SP: 0xFF,
+            S:  0xFF,
             // Accumulator
             A:  0x00,
             // Index Register X
@@ -49,6 +49,12 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
             this.reg.P &= 0xBF; // clean V
             this.reg.P |= ((M^result)&(N^result)&0x80) >> 1;
         },
+
+        pushStack: function pushStack(value) {
+            this.memory.setByte(0x100 + this.reg.S, value);
+            this.reg.S = (this.reg.S ? this.reg.S - 1 : 0xff);
+        },
+
         // Sum two arguments, adjust cycles if pageBoundary is set
         sumWithPageBoundary: function sumWithPageBoundary(address, offset, modifier) {
             if (modifier === 1 && ((address & 0xff) + offset > 0xff)) {
@@ -181,6 +187,61 @@ define(['src/components/data/addressmodes', 'src/components/data/opcodes'], func
                         this.adjustCyclesForPages(this.reg.PC, address);
                         this.reg.PC = address;
                     }
+                    break;
+                case 'BIT':
+                    this.reg.P = ((arg & 0x80) === 0x80 ? (this.reg.P | 0x80) : (this.reg.P & 0x7f));
+                    this.reg.P = ((arg & 0x40) === 0x40 ? (this.reg.P | 0x40) : (this.reg.P & 0xbf));
+                    this.reg.P = ((this.reg.A & arg) ? (this.reg.P & 0xfd) : (this.reg.P | 0x02));
+                    break;
+                case 'BMI':
+                    if((this.reg.P & 0x80) == 0x80) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
+                    break;
+                case 'BNE':
+                    if((this.reg.P & 0x02) == 0x00) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
+                    break;
+                case 'BPL':
+                    if((this.reg.P & 0x80) == 0x00) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
+                    break;
+                case 'BRK':
+                    // TODO: Implement interrupts
+                    this.reg.P |= 0x10;
+                    this.pushStack(this.reg.PC >> 8);
+                    this.pushStack(this.reg.PC & 0xff);
+                    this.pushStack(this.reg.P);
+                    this.reg.P |= 0x04;
+                    break;
+                case 'BVC':
+                    if((this.reg.P & 0x40) == 0x00) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
+                    break;
+                case 'BVS':
+                    if((this.reg.P & 0x40) == 0x40) {
+                        this.adjustCyclesForPages(this.reg.PC, address);
+                        this.reg.PC = address;
+                    }
+                    break;
+                case 'CLC':
+                    this.reg.P &= 0xfe;
+                    break;
+                case 'CLD':
+                    this.reg.P &= 0xf7;
+                    break;
+                case 'CLI':
+                    this.reg.P &= 0xfb;
+                    break;
+                case 'CLV':
+                    this.reg.P &= 0xbf;
                     break;
                 case 'LDA':
                     this.reg.A = arg;
